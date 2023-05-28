@@ -177,7 +177,7 @@ class MAML:
         # Make sure to populate accuracies and update parameters.
         # Use F.cross_entropy to compute classification losses.
         # Use util.score to compute accuracies.
-        for _ in range(self._num_inner_steps):
+        for _ in range(self._num_inner_steps + 1):
             logits = self._forward(images, parameters)
             loss = F.cross_entropy(logits, labels)
 
@@ -233,11 +233,17 @@ class MAML:
             # and accuracy_query_batch.
             parameters, accuracies = self._inner_loop(images_support, labels_support, train)
 
+            # Pre Adapt Accuracy
+            accuracies_support_batch.append(accuracies)
+
+            # Post Adapt
             maml_logits = self._forward(images_query, parameters)
+
+            # Loss
             maml_loss = F.cross_entropy(maml_logits, labels_query)
             outer_loss_batch.append(maml_loss)
 
-            accuracies_support_batch.append(accuracies)
+            # Post Adapt Accuracy
             maml_accuracy = util.score(maml_logits, labels_query)
             accuracy_query_batch.append(maml_accuracy)
             # ********************************************************
